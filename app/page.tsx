@@ -142,8 +142,10 @@ export default function Home() {
     if (label === "Attendance") { router.push("/attendance"); return; }
     if (label === "Students") { router.push("/students"); return; }
     if (label === "AI Predictions") { router.push("/predictions"); return; }
-    if (label === "Overview") setDrawer(null);
-    else setDrawer(label);
+    if (label === "Overview") { setDrawer(null); return; }
+    if (label === "Reports") { router.push("/predictions"); return; }
+    if (label === "Settings") { router.push("/workspace/settings"); return; }
+    router.push(`/workspace/${label.toLowerCase().replaceAll(" ", "-")}`);
   }
 
   function logout() {
