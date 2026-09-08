@@ -1,4 +1,6 @@
 "use client";
+/* This profile includes display copy with an apostrophe inside a single JSX line. */
+/* eslint-disable react/no-unescaped-entities */
 
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowLeft, Check, ClipboardCheck, LoaderCircle, Save, Sparkles } from "lucide-react";

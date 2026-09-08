@@ -5,9 +5,12 @@ import Student from "@/models/Student";
 import Attendance from "@/models/Attendance";
 import { predictAttendance } from "@/lib/ai/attendancePrediction";
 import { apiError, listDocuments } from "@/lib/api/crud";
+import { requireEditor } from "@/lib/auth";
 export async function GET(request: Request) { try { await connectToDatabase(); return listDocuments(Prediction, request); } catch { return apiError(); } }
-export async function POST() {
+export async function POST(request: Request) {
 	try {
+		const denied = requireEditor(request);
+		if (denied) return denied;
 		await connectToDatabase();
 		const students = await Student.find({}).lean();
 		const attendance = await Attendance.find({}).lean();

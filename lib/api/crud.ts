@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { Model } from "mongoose";
+import { requireEditor } from "@/lib/auth";
 
 export async function listDocuments(model: Model<unknown>, request: Request) {
   const url = new URL(request.url);
@@ -12,6 +13,8 @@ export async function listDocuments(model: Model<unknown>, request: Request) {
 }
 
 export async function createDocument(model: Model<unknown>, request: Request) {
+  const denied = requireEditor(request);
+  if (denied) return denied;
   const payload = await request.json();
   const data = await model.create(payload);
   return NextResponse.json({ success: true, data }, { status: 201 });
@@ -24,12 +27,16 @@ export async function getDocument(model: Model<unknown>, id: string) {
 }
 
 export async function updateDocument(model: Model<unknown>, id: string, request: Request) {
+  const denied = requireEditor(request);
+  if (denied) return denied;
   const data = await model.findOneAndUpdate({ $or: [{ _id: id }, { studentId: id }, { deptId: id }, { facultyId: id }, { subjectId: id }, { classId: id }, { attendanceId: id }, { assessmentId: id }, { predictionId: id }, { alertId: id }] }, await request.json(), { new: true, runValidators: true }).lean();
   if (!data) return NextResponse.json({ success: false, error: "Record not found." }, { status: 404 });
   return NextResponse.json({ success: true, data });
 }
 
-export async function deleteDocument(model: Model<unknown>, id: string) {
+export async function deleteDocument(model: Model<unknown>, id: string, request: Request) {
+  const denied = requireEditor(request);
+  if (denied) return denied;
   const result = await model.deleteOne({ $or: [{ _id: id }, { studentId: id }, { deptId: id }, { facultyId: id }, { subjectId: id }, { classId: id }, { attendanceId: id }, { assessmentId: id }, { predictionId: id }, { alertId: id }] });
   if (!result.deletedCount) return NextResponse.json({ success: false, error: "Record not found." }, { status: 404 });
   return NextResponse.json({ success: true, data: { deleted: true } });

@@ -1,6 +1,4 @@
 "use client";
-/* The dashboard contains display copy with apostrophes inside a single JSX line. */
-/* eslint-disable react/no-unescaped-entities */
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -91,6 +89,7 @@ function LandingPage({ onLogin }: { onLogin: () => void }) {
     <section className="landing-hero"><div className="hero-copy"><div className="eyebrow"><span className="live-dot" /> THE INTELLIGENCE LAYER FOR EDUCATION</div><h1>See the signal<br /><em>behind every student.</em></h1><p>Attendai turns attendance, assessment, and academic risk into one clear operating picture for modern universities.</p><div className="hero-actions"><button className="primary-button hero-button" onClick={onLogin}>Enter workspace <ArrowUpRight size={16} /></button><a className="hero-secondary" href="#platform">Explore platform <ArrowDown size={15} /></a></div><div className="hero-proof"><span><strong>2,480</strong> students tracked</span><span><strong>84.6%</strong> avg. attendance</span><span><strong>24/7</strong> early signals</span></div></div><div className="hero-visual"><div className="orbital orbital-one" /><div className="orbital orbital-two" /><div className="hero-card hero-card-main"><div className="hero-card-head"><span>ATTENDANCE SIGNAL</span><MoreHorizontal size={16} /></div><div className="hero-metric">84.6% <small>+4.2%</small></div><div className="hero-chart"><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /><i /></div><div className="hero-card-foot"><span>University-wide average</span><span>SEP 2025</span></div></div><div className="hero-card hero-card-float"><div className="float-icon"><Sparkles size={15} /></div><div><span>AI RISK DETECTED</span><strong>126 students</strong><small>may need intervention</small></div><ArrowUpRight size={16} /></div></div></section>
     <section className="landing-strip" id="platform"><span>ONE SYSTEM. EVERY SIGNAL.</span><div><strong>Attendance</strong><strong>Performance</strong><strong>Prediction</strong><strong>Action</strong></div></section>
     <section className="landing-features" id="workflow"><div><div className="eyebrow">BUILT FOR THE FULL ACADEMIC PICTURE</div><h2>From raw records to<br /><em>better outcomes.</em></h2></div><div className="feature-grid"><article><span>01</span><ClipboardCheck size={20} /><h3>Attendance, without the blind spots.</h3><p>See department and subject-level patterns before they become a student success problem.</p></article><article><span>02</span><Sparkles size={20} /><h3>Transparent predictive analytics.</h3><p>Baseline risk signals are explainable, timestamped, and ready for a real model when you are.</p></article><article><span>03</span><Users size={20} /><h3>One calm command center.</h3><p>Give administrators, faculty, and student support teams one shared operational view.</p></article></div></section>
+    <section className="landing-story" aria-label="Why Attendai"><div className="landing-story-copy"><div className="eyebrow"><span className="live-dot" /> BUILT FOR DECISIVE ACADEMIC TEAMS</div><h2>Less chasing.<br /><em>More clarity.</em></h2><p>Attendai brings the daily academic picture into one calm workspace—so teams can move from recording attendance to supporting students at the right moment.</p><button className="primary-button" onClick={onLogin}>See your workspace <ArrowUpRight size={16} /></button></div><div className="outcome-grid"><article><span className="outcome-number">01</span><strong>Capture</strong><p>Record class attendance without duplicate registers.</p></article><article><span className="outcome-number">02</span><strong>Understand</strong><p>See the patterns behind departments, subjects, and students.</p></article><article><span className="outcome-number">03</span><strong>Act</strong><p>Give every team a shared, timely intervention view.</p></article></div></section>
     <footer className="landing-footer"><span>attendai / CHRIST UNIVERSITY</span><a href="/about">Read the product brief <ArrowUpRight size={14} /></a></footer>
   </main>;
 }
@@ -147,7 +146,8 @@ export default function Home() {
     router.push(`/workspace/${label.toLowerCase().replaceAll(" ", "-")}`);
   }
 
-  function logout() {
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
     document.cookie = "attendai_session=; path=/; max-age=0";
     document.cookie = "attendai_role=; path=/; max-age=0";
     document.cookie = "attendai_name=; path=/; max-age=0";

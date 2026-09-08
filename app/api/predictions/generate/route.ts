@@ -4,9 +4,12 @@ import Attendance from "@/models/Attendance";
 import Prediction from "@/models/Prediction";
 import Student from "@/models/Student";
 import { predictAttendance } from "@/lib/ai/attendancePrediction";
+import { requireEditor } from "@/lib/auth";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const denied = requireEditor(request);
+    if (denied) return denied;
     await connectToDatabase();
     const students = await Student.find({}).select({ studentId: 1 }).lean();
     const records = await Attendance.find({}).lean();
