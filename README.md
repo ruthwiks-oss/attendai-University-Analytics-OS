@@ -1,93 +1,214 @@
-# attendai | University Analytics OS
+# attendai
 
-A production-oriented Next.js + MongoDB foundation for AI-powered attendance and student performance analytics.
+## University Analytics OS
 
-## Getting Started
+attendai is a Next.js and MongoDB workspace for university attendance operations, student records, academic activity, and explainable attendance-risk signals.
 
-First, run the development server:
+The product is designed around one practical loop: teachers record attendance, administrators monitor the institution, students review their records, and the prediction layer highlights where support may be needed.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Product Surface
+
+- **Overview**: live dashboard counts, attendance trends, risk signals, reports, and notifications.
+- **Teacher workspace**: choose a class, add students, remove students, mark present or absent, and save a complete register.
+- **Student directory**: search the live student collection and open an individual attendance dashboard.
+- **AI Predictions**: generate transparent baseline predictions from recorded attendance history.
+- **Academic workspaces**: departments, faculty, subjects, classes, assessments, and alerts are available from the sidebar.
+- **Settings**: configure local attendance and high-risk thresholds.
+- **Role-aware access**: Administrator, Faculty, and Student roles are carried through the sign-in and registration flow.
+
+## Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page and authenticated overview dashboard |
+| `/login` | Sign in with email or username |
+| `/register` | Create an Administrator, Faculty, or Student account |
+| `/attendance` | Teacher/admin attendance register |
+| `/students` | Student directory and dashboard |
+| `/students/:id` | Individual student profile |
+| `/predictions` | AI prediction studio |
+| `/workspace/:section` | Live academic workspace for departments, faculty, subjects, classes, assessments, or alerts |
+| `/about` | Product and architecture brief |
+
+## Technology
+
+- Next.js 16 App Router
+- React 19 and TypeScript
+- MongoDB with Mongoose
+- Zod request validation
+- bcrypt password hashing
+- Lucide icons
+- Recharts and CSS data visualizations
+- Vercel-compatible server routes
+
+## Requirements
+
+- Node.js 20 or newer
+- npm
+- MongoDB Atlas or a reachable MongoDB deployment
+
+## Local Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Create `.env.local` from `.env.example`:
+
+   ```env
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/attendai
+   AUTH_SECRET=use-a-long-random-secret
+   SUPER_ADMIN_USERNAME=choose-a-private-admin-username
+   SUPER_ADMIN_PASSWORD=choose-a-strong-admin-password
+   ```
+
+   Never commit `.env.local` or expose `MONGODB_URI` through a `NEXT_PUBLIC_` variable.
+
+3. In MongoDB Atlas, add your current IP under **Security > Network Access**.
+
+4. Seed the academic demo data:
+
+   ```bash
+   npm run seed
+   ```
+
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## User Workflows
+
+### Administrator
+
+1. Sign in.
+2. Use the sidebar to open live departments, faculty, subjects, classes, assessments, and alerts.
+3. Open Settings to save attendance and risk thresholds.
+4. Open Attendance to manage the roster and review the register.
+
+### Teacher
+
+1. Register with the Faculty role or sign in with a Faculty account.
+2. Open **Attendance**.
+3. Select a class session.
+4. Use **Add student** to create a student record.
+5. Mark each student **Present** or **Absent**.
+6. Use the remove action to delete an incorrect student record.
+7. Select **Save attendance** to upsert the register without duplicate student/class records.
+
+### Student
+
+1. Register with the Student role or sign in with a Student account.
+2. Open **Students** to view the directory and profile dashboards.
+3. Review attendance history and present/missed totals.
+
+## API Surface
+
+Academic collection routes support paginated `GET` and CRUD operations:
+
+```text
+/api/departments
+/api/students
+/api/faculty
+/api/subjects
+/api/classes
+/api/attendance
+/api/assessments
+/api/predictions
+/api/alerts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Additional routes:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+/api/auth/login
+/api/users
+/api/dashboard
+/api/students/:id/attendance
+/api/predictions/generate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`POST /api/attendance` accepts a validated `records` array and upserts the register by `studentId` and `classId`.
 
-## Learn More
+`POST /api/predictions` generates baseline predictions using attendance history. The model is intentionally transparent and isolated in `lib/ai/attendancePrediction.ts` so it can later be replaced by a trained model adapter.
 
-To learn more about Next.js, take a look at the following resources:
+## Database Model
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The main Mongoose models are:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `Department`: academic departments and ownership details
+- `Student`: identity, department, section, and semester
+- `Faculty`: teaching staff and contact details
+- `Subject`: curriculum records and faculty ownership
+- `Class`: scheduled class sessions
+- `Attendance`: student/class attendance records
+- `Assessment`: assessment results linked to classes
+- `Prediction`: timestamped predicted attendance and risk level
+- `Alert`: generated intervention alerts
+- `User`: hashed-password application accounts and role metadata
 
-## Deploy on Vercel
+Attendance has a unique `studentId`/`classId` compound index so saving the same register again updates the existing record instead of creating duplicates.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verification
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run the release checks before deployment:
 
-## ER model and backend
+```bash
+npm run lint
+npm run build
+```
 
-The MongoDB collections preserve the supplied relationships: departments own students; faculty teach subjects; subjects have classes; classes connect attendance and assessments; students generate timestamped predictions; predictions generate alerts. Assessment documents also retain the `attendanceId` relationship from the diagram. The dashboard route at `/api/dashboard` reads live collection counts. The current prediction engine is explicitly transparent baseline predictive analytics, isolated for a future trained-model adapter.
+Recommended smoke test:
 
-## Local setup
+1. Open `/login` and verify the administrator sign-in.
+2. Open `/register`, create a Faculty account, and sign in with it.
+3. Open `/attendance`, select a class, add a student, mark attendance, save, and save again.
+4. Open `/students` and the student profile route.
+5. Open `/predictions` and generate predictions.
+6. Visit each sidebar workspace and confirm live records load from MongoDB.
+7. Log out and confirm the app returns to `/login`.
 
-Copy `.env.example` to `.env.local`, provide `MONGODB_URI` and `AUTH_SECRET`, run `npm install`, then `npm run seed` and `npm run dev`.
+## Vercel Deployment
 
-The smoke-test super admin is `123456` / `dsmaer`. Set `SUPER_ADMIN_USERNAME` and `SUPER_ADMIN_PASSWORD` in Vercel before production. New accounts created at `/register` are persisted in MongoDB and can sign in with their email and password.
+1. Import the repository into Vercel.
+2. Add these production environment variables:
 
-## Deployment
+   ```text
+   MONGODB_URI
+   AUTH_SECRET
+   SUPER_ADMIN_USERNAME
+   SUPER_ADMIN_PASSWORD
+   ```
 
-Set `MONGODB_URI` and `AUTH_SECRET` as Vercel production environment variables. MongoDB Atlas must allow the Vercel runtime network access. For local registration, add your current public IP under Atlas **Security > Network Access**; for Vercel, use an approved Vercel egress strategy or temporarily allow the required deployment network. Never expose `MONGODB_URI` with a `NEXT_PUBLIC_` prefix.
+3. Configure MongoDB Atlas Network Access for the Vercel runtime or approved egress IP range.
+4. Deploy and run the smoke test against the production URL.
 
-## Presentation flow
+## Production Hardening
 
-- `/` - branded product landing page
-- `/login` - working demo sign-in with Administrator, Faculty member, and Student roles
-- `/attendance` - teacher register for selecting a class, marking a roster, and saving attendance
-`/api/departments`, `/api/students`, `/api/faculty`, `/api/subjects`, `/api/classes`, `/api/attendance`, `/api/assessments`, `/api/predictions`, and `/api/alerts`. `POST /api/attendance` also accepts a validated `records` array and upserts one register in a single request.
-The `models/` directory contains Department, Student, Faculty, Subject, Class, Attendance, Assessment, Prediction, Alert, and User models. Attendance has a unique student/class compound index; predictions are timestamped; assessments retain the diagram’s `attendanceId` link. `scripts/seed.ts` populates CHRIST UNIVERSITY demo departments, students, faculty, subjects, and class sessions.
+The current application is build- and lint-clean, but these items should be completed before handling sensitive university data at scale:
 
-## Smoke test
+- Replace the client demo-session cookie with signed, HttpOnly server-side sessions.
+- Enforce role authorization inside protected API routes, not only in the client UI.
+- Rotate any database password that has been shared during development.
+- Add audit logging for attendance edits and student removal.
+- Add automated integration tests against a disposable MongoDB database.
+- Add rate limiting and account recovery before public launch.
 
-Run `npm run lint` and `npm run build`. With MongoDB configured, run `npm run seed`, open `/login`, sign in with the smoke-test credentials, open Attendance, choose a class, mark students, and save. Confirm the success toast, then save again to verify the upsert does not create duplicates.
-- `/` after sign-in - analytics workspace dashboard
-- `/about` - product, ER model, AI architecture, and production handoff brief
+## Scripts
 
-The demo login uses a short-lived browser session so the complete presentation works before MongoDB is connected. Replace that session with a real authentication provider and enable the existing Mongoose models/API after adding `.env.local`.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create the production build |
+| `npm run start` | Run the production build |
+| `npm run lint` | Run ESLint |
+| `npm run seed` | Reset and seed demo academic data |
 
-## Final file and feature inventory
+## Repository
 
-### Routes
-
-- `/` - CHRIST UNIVERSITY landing page and protected analytics workspace
-- `/login` - demo role sign-in
-- `/register` - create an Administrator, Faculty, or Student user
-- `/about` - product and architecture brief
-
-### Server API
-
-Every academic collection has paginated/searchable `GET`, Mongoose-validated `POST`, item `GET`, `PUT`, and `DELETE` routes:
-
-`/api/departments`, `/api/students`, `/api/faculty`, `/api/subjects`, `/api/classes`, `/api/attendance`, `/api/assessments`, `/api/predictions`, and `/api/alerts`.
-
-Additional routes are `/api/users`, `/api/dashboard`, the baseline prediction service in `lib/ai/attendancePrediction.ts`, and centralized thresholds in `lib/config/risk.ts`.
-
-### Database files
-
-The `models/` directory contains Department, Student, Faculty, Subject, Class, Attendance, Assessment, Prediction, Alert, and User models. Attendance has a unique student/class compound index; predictions are timestamped; assessments retain the diagram’s `attendanceId` link. `scripts/seed.ts` populates CHRIST UNIVERSITY demo departments, students, faculty, and subjects.
-
-### Remaining production handoff
-
-The application is build- and lint-clean. Before production, replace the demo cookie login with a production identity provider, add server-side authorization checks to protected CRUD handlers, and set production `AUTH_SECRET`/`MONGODB_URI` in Vercel. The supplied Atlas connection is configured and seeded locally.
+[attendai-University-Analytics-OS](https://github.com/ruthwiks-oss/attendai-University-Analytics-OS)
