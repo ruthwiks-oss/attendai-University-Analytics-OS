@@ -36,5 +36,5 @@ export async function deleteDocument(model: Model<unknown>, id: string) {
 }
 
 export function apiError() {
-  return NextResponse.json({ success: false, error: "Request could not be completed." }, { status: 400 });
+  return NextResponse.json({ success: false, error: "Live data is unavailable. Configure MONGODB_URI in Vercel and allow the deployment network in MongoDB Atlas Network Access." }, { status: 503 });
 }
