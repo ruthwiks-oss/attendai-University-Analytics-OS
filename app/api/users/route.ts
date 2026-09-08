@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { connectToDatabase } from "@/lib/mongodb";
+import { connectToDatabase, databaseErrorMessage } from "@/lib/mongodb";
 import User from "@/models/User";
 
 const createUserSchema = z.object({
@@ -25,6 +25,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data: { id: user._id.toString(), name: user.name, username: user.username, email: user.email, role: user.role } }, { status: 201 });
   } catch (error) {
     if (error instanceof z.ZodError) return NextResponse.json({ success: false, error: "Please check the registration details." }, { status: 400 });
-    return NextResponse.json({ success: false, error: "User creation is unavailable until MongoDB is connected." }, { status: 503 });
+    return NextResponse.json({ success: false, error: databaseErrorMessage(error) }, { status: 503 });
   }
 }

@@ -49,7 +49,7 @@ The smoke-test super admin is `123456` / `dsmaer`. Set `SUPER_ADMIN_USERNAME` an
 
 ## Deployment
 
-Set `MONGODB_URI` and `AUTH_SECRET` as Vercel production environment variables. MongoDB Atlas must allow the Vercel runtime network access. Never expose `MONGODB_URI` with a `NEXT_PUBLIC_` prefix.
+Set `MONGODB_URI` and `AUTH_SECRET` as Vercel production environment variables. MongoDB Atlas must allow the Vercel runtime network access. For local registration, add your current public IP under Atlas **Security > Network Access**; for Vercel, use an approved Vercel egress strategy or temporarily allow the required deployment network. Never expose `MONGODB_URI` with a `NEXT_PUBLIC_` prefix.
 
 ## Presentation flow
 

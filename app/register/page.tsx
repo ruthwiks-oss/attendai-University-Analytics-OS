@@ -21,7 +21,7 @@ export default function RegisterPage() {
     const response = await fetch("/api/users", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: form.get("name"), email: form.get("email"), password: form.get("password"), role }) });
     const result = await response.json();
     setLoading(false);
-    if (!response.ok) { setStatus(result.error); return; }
+    if (!response.ok) { setStatus(result.error || "Account creation could not be completed."); return; }
     document.cookie = "attendai_session=demo; path=/; max-age=86400; samesite=lax";
     document.cookie = `attendai_role=${role}; path=/; max-age=86400; samesite=lax`;
     document.cookie = `attendai_name=${encodeURIComponent(String(form.get("name")))}` + "; path=/; max-age=86400; samesite=lax";
